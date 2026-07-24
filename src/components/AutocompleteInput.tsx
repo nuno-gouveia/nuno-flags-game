@@ -14,6 +14,7 @@ export function AutocompleteInput({ countries, onSubmit }: AutocompleteInputProp
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [open, setOpen] = useState(false);
   const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   function cancelPendingClose() {
     if (blurTimeout.current !== null) {
@@ -53,6 +54,8 @@ export function AutocompleteInput({ countries, onSubmit }: AutocompleteInputProp
     setSelectedCode(null);
     setOpen(false);
     setHighlightedIndex(-1);
+    // Keep the mobile keyboard up between guesses.
+    inputRef.current?.focus();
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -80,6 +83,7 @@ export function AutocompleteInput({ countries, onSubmit }: AutocompleteInputProp
     <div className="autocomplete">
       <div className="autocomplete-row">
         <input
+          ref={inputRef}
           type="text"
           value={query}
           placeholder="Type a country name…"
@@ -100,7 +104,13 @@ export function AutocompleteInput({ countries, onSubmit }: AutocompleteInputProp
             blurTimeout.current = setTimeout(() => setOpen(false), 150);
           }}
         />
-        <button type="button" disabled={!resolvedCode} onClick={handleSubmit}>
+        <button
+          type="button"
+          disabled={!resolvedCode}
+          // Stops the tap from blurring the input, which would close the keyboard.
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={handleSubmit}
+        >
           Submit
         </button>
       </div>
@@ -110,7 +120,10 @@ export function AutocompleteInput({ countries, onSubmit }: AutocompleteInputProp
             <li
               key={c.code}
               className={i === highlightedIndex ? 'highlighted' : ''}
-              onMouseDown={() => selectSuggestion(c)}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                selectSuggestion(c);
+              }}
             >
               {c.name}
             </li>

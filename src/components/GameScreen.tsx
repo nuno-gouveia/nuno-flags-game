@@ -24,7 +24,10 @@ export function GameScreen({ game }: GameScreenProps) {
         </div>
       </div>
       <Flag code={currentCountry.code} />
-      <AutocompleteInput key={currentIndex} countries={countries} onSubmit={submitGuess} />
+      {/* No `key` here on purpose: remounting would destroy the focused <input>,
+          closing the mobile keyboard after every guess. The component resets its
+          own state on submit instead. */}
+      <AutocompleteInput countries={countries} onSubmit={submitGuess} />
     </div>
   );
 }
